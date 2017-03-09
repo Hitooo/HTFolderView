@@ -7,8 +7,11 @@
 //
 
 #import "ViewController.h"
+#import "HTFolderView.h"
 
 @interface ViewController ()
+
+@property (nonatomic,copy) HTFolderView *folderView;
 
 @end
 
@@ -16,14 +19,22 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
 }
 
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
-
+#pragma mark UI
+-(HTFolderView *)folderView{
+    if (!_folderView) {
+        _folderView = [[HTFolderView alloc] initWithTitle:@"我的文件夹" dataSoure:@[@"天气",@"生活",@"工作",@"效率",@"娱乐",@"天气1",@"天气2",@"天气3",@"天气4"] style:HTEffectStyleDark];
+        _folderView.HTBlock = ^(NSInteger index){
+            //do something
+        };
+    }
+    
+    return _folderView;
+}
 @end
