@@ -35,10 +35,13 @@ typedef NS_ENUM(NSInteger, HTEffectStyle) {
 @property (nonatomic,copy) UILabel *folderTitle;
 @property (nonatomic, weak) id<HTFolderViewDelegate> delegate;
 @property (nonatomic,copy) NSArray *datasource;
+@property (nonatomic,copy) NSArray *imageArr;
 
 @property (copy, nonatomic) void(^HTBlock)(NSInteger index);
 
 - (id)initWithTitle:(NSString *)title dataSoure:(NSArray *)arr style:(HTEffectStyle)style;
+
+- (id)initWithTitle:(NSString *)title dataSoure:(NSArray *)arr withImageArr:(NSArray *)imagearr style:(HTEffectStyle)style;
 
 - (void)showAnimation;
 - (void)hideAnimation;

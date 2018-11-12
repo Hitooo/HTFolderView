@@ -6,8 +6,15 @@
 //  Copyright (c) 2015年 Hitoo. All rights reserved.
 //
 
+#define HT_SCREEN_WIDTH ([UIScreen mainScreen].bounds.size.width)
+#define HT_SCREEN_HEIGHT ([UIScreen mainScreen].bounds.size.height)
 #define FolderOutMargin 40
 #define FolderInnerMargin 16
+#define HT_COLOR(R, G, B, A) [UIColor colorWithRed:R/255.0 green:G/255.0 blue:B/255.0 alpha:A]// 设置颜色RGB
+#define HT_BG_COLOR [UIColor groupTableViewBackgroundColor]
+#define HT_TEXT_BLACKCOLOR HT_COLOR(40, 40, 40, 1)//一级标题字体颜色
+#define HT_TEXT_DARKCOLOR HT_COLOR(101, 101, 101, 1)//二级标题字体颜色
+#define HT_IMAGENAME(name) [UIImage imageNamed:name]//定义UIImage对象
 
 #import "HTFolderView.h"
 
@@ -33,13 +40,13 @@
 
 -(UILabel *)titleLab{
     if (!_titleLab) {
-        _titleLab = [[UILabel alloc] initWithFrame:CGRectMake(15, 57, self.bounds.size.width-30, self.bounds.size.height-57)];
+        _titleLab = [[UILabel alloc] initWithFrame:CGRectMake(2, 57, self.bounds.size.width-4, self.bounds.size.height-57)];
         _titleLab.textColor = [UIColor whiteColor];
         _titleLab.font = [UIFont systemFontOfSize:14];
         _titleLab.textAlignment = NSTextAlignmentCenter;
         _titleLab.lineBreakMode = NSLineBreakByTruncatingTail;
         _titleLab.numberOfLines = 0;
-        _titleLab.adjustsFontSizeToFitWidth = YES;
+//        _titleLab.adjustsFontSizeToFitWidth = YES;
     }
     return _titleLab;
 }
@@ -57,18 +64,21 @@
 
 - (id)initWithTitle:(NSString *)title dataSoure:(NSArray *)arr style:(HTEffectStyle)style{
     
-    CGFloat width = [UIScreen mainScreen].bounds.size.width;
-    CGFloat height = [UIScreen mainScreen].bounds.size.height;
+    return [self initWithTitle:title dataSoure:arr withImageArr:nil style:style];
+}
 
-    self = [super initWithFrame:CGRectMake(0, 0, width, height)];
+- (id)initWithTitle:(NSString *)title dataSoure:(NSArray *)arr withImageArr:(NSArray *)imagearr style:(HTEffectStyle)style{
+    
+    self = [super initWithFrame:CGRectMake(0, 0, HT_SCREEN_WIDTH, HT_SCREEN_HEIGHT)];
     if (self)
     {
         self.datasource = arr;
+        self.imageArr = imagearr;
         self.folderStyle = style;
         self.folderTitle.text = title;
         UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(hideAnimation)];
         [self.backgroundView addGestureRecognizer:tap];
-
+        
         [[[UIApplication sharedApplication] keyWindow] addSubview:self];
     }
     return self;
@@ -77,7 +87,14 @@
 #pragma mark - Action
 
 -(CGFloat)getHeightOfItem{
-    return [self getWidthOfItem];
+    
+    NSInteger height = [self getWidthOfItem];
+    
+    if (height-57<16) {
+        height = height + 16;
+    }
+    
+    return height;
 }
 
 -(CGFloat)getWidthOfItem{
@@ -92,7 +109,7 @@
 
 -(CGFloat)getWidthOfFolder{
     
-    return [UIScreen mainScreen].bounds.size.width - 2*FolderOutMargin;
+    return HT_SCREEN_WIDTH - 2*FolderOutMargin;
 }
 
 -(NSInteger)getRowsOfFolder{
@@ -123,7 +140,7 @@
             _folderView = [[UIView alloc] init];
         }
         
-        _folderView.frame = CGRectMake(FolderOutMargin, ([UIScreen mainScreen].bounds.size.height-[self getHeightOfFolder])/2, [self getWidthOfFolder], [self getHeightOfFolder]);
+        _folderView.frame = CGRectMake(FolderOutMargin, (HT_SCREEN_HEIGHT-[self getHeightOfFolder])/2, [self getWidthOfFolder], [self getHeightOfFolder]);
         _folderView.layer.cornerRadius = 30;
         _folderView.layer.masksToBounds = YES;
         [self addSubview:_folderView];
@@ -137,14 +154,20 @@
 {
     if (!_folderTitle)
     {
-        _folderTitle = [[UILabel alloc] initWithFrame:CGRectMake(0, (([UIScreen mainScreen].bounds.size.height-[self getHeightOfFolder])/2-37)/2, [UIScreen mainScreen].bounds.size.width, 37)];
+        _folderTitle = [[UILabel alloc] initWithFrame:CGRectMake(0, ((HT_SCREEN_HEIGHT-[self getHeightOfFolder])/2-37)/2, HT_SCREEN_WIDTH, 37)];
         _folderTitle.textAlignment = NSTextAlignmentCenter;
         
-        _folderTitle.textColor = self.folderStyle == HTEffectStyleLight?[UIColor groupTableViewBackgroundColor]:[UIColor darkGrayColor];
+        _folderTitle.textColor = self.folderStyle == HTEffectStyleLight?HT_BG_COLOR:HT_TEXT_DARKCOLOR;
         _folderTitle.font = [UIFont systemFontOfSize:35];
         _folderTitle.backgroundColor = [UIColor clearColor];
 
-        [self.backgroundView addSubview:_folderTitle];
+        if([self.backgroundView isKindOfClass:[UIVisualEffectView class]]){
+            UIVisualEffectView *view = (UIVisualEffectView *)self.backgroundView;
+            [view.contentView addSubview:_folderTitle];
+        }
+        else{
+            [self.backgroundView addSubview:_folderTitle];
+        }
     }
     return _folderTitle;
 }
@@ -162,7 +185,7 @@
            _backgroundView = [[UIView alloc] init];
         }
         
-        _backgroundView.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+        _backgroundView.frame = CGRectMake(0, 0, HT_SCREEN_WIDTH, HT_SCREEN_HEIGHT);
 
         [self addSubview:_backgroundView];
     }
@@ -185,8 +208,15 @@
         _collectionView.pagingEnabled = NO;
         _collectionView.indicatorStyle = self.folderStyle == HTEffectStyleLight?UIScrollViewIndicatorStyleBlack:UIScrollViewIndicatorStyleWhite;
         [_collectionView registerClass:[HTFolderCollectionCell class] forCellWithReuseIdentifier:@"cell"];
-        [self.folderView addSubview:_collectionView];
+        
+        if ([self.folderView isKindOfClass:[UIVisualEffectView class]]) {
+            UIVisualEffectView *view = (UIVisualEffectView *)self.folderView;
+            [view.contentView addSubview:_collectionView];
+        }else{
+            [self.folderView addSubview:_collectionView];
+        }
     }
+    
     return _collectionView;
 }
 
@@ -202,12 +232,11 @@
 {
     HTFolderCollectionCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cell" forIndexPath:indexPath];
     
-    cell.headImgView.image = [UIImage imageNamed:self.datasource[indexPath.row]];
+    cell.headImgView.image = self.imageArr.count>0?HT_IMAGENAME(self.imageArr[indexPath.row]):HT_IMAGENAME(self.datasource[indexPath.row]);
     cell.titleLab.text = self.datasource[indexPath.row];
     cell.headImgView.contentMode = UIViewContentModeScaleAspectFill;
     
-    cell.titleLab.textColor = self.folderStyle == HTEffectStyleLight?[UIColor darkGrayColor]:[UIColor whiteColor];
-
+    cell.titleLab.textColor = self.folderStyle == HTEffectStyleLight?HT_TEXT_DARKCOLOR:[UIColor whiteColor];
 
     return cell;
 }
